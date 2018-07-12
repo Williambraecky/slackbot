@@ -1,47 +1,71 @@
 package be.wbraeckm;
 
+import be.wbraeckm.commands.SlackBotCommandManager;
+import be.wbraeckm.listener.MessagePosterListener;
+import be.wbraeckm.logger.Logger;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackSession;
-import com.ullink.slack.simpleslackapi.SlackUser;
 import com.ullink.slack.simpleslackapi.events.SlackMessagePosted;
 import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
-import com.ullink.slack.simpleslackapi.listeners.SlackMessagePostedListener;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.InputStream;
+import java.util.*;
 
+@Getter
 public class Main {
 
     private static Main main;
 
     private SlackSession session;
-    private SlackChannel channelRandom;
+    private SlackBotCommandManager commandManager;
+    private @Setter boolean running;
+    private List<String> targetedUsers;
+    private List<SlackChannel> trackedChannels;
 
-    public static void main(String[] args) throws IOException {
-        main = new Main();
+    public static void main(String[] args) throws IOException
+    {
+        if (args.length == 0)
+        {
+            System.out.println("Please provide the token as launch argument");
+            return ;
+        }
+        main = new Main(args[0]);
     }
 
-    public Main() throws IOException {
+    private Main(String token)
+    {
         session = SlackSessionFactory
-                .createWebSocketSlackSession("xoxb-354360306016-397451107731-FNMpdS6a4RYTx68klnAvIOXK");
-        session.connect();
-        channelRandom = session.findChannelByName("random");
-        final SlackChannel _private = session.findChannelById("GBPGHB06P");
-        session.addMessagePostedListener(new SlackMessagePostedListener() {
-            public void onEvent(SlackMessagePosted slackMessagePosted, SlackSession slackSession) {
-                if (slackMessagePosted.getChannel() != _private ||
-                        (!slackMessagePosted.getSender().getId().equals("UBGM71U64") &&
-                        !slackMessagePosted.getSender().getId().equals("UAETDFTFW") &&
-                        !slackMessagePosted.getSender().getId().equals("UBGM4FT6C")))
-                    return ;
-                session.addReactionToMessage(_private, slackMessagePosted.getTimeStamp(), "thor");
-                session.addReactionToMessage(_private, slackMessagePosted.getTimeStamp(), "vs");
-                session.addReactionToMessage(_private, slackMessagePosted.getTimeStamp(), "my_little_pony");
-                System.out.println(String.format("%s: %s",
-                        slackMessagePosted.getSender().getId(),
-                        slackMessagePosted.getMessageContent()));
+                .createWebSocketSlackSession(token);
+        try {
+            session.connect();
+        } catch (Exception exception) {
+            Logger.error("Could not start slacksession");
+            return;
+        }
+        running = true;
+        commandManager = new SlackBotCommandManager(this);
+        readCommand(System.in);
+        targetedUsers = new ArrayList<>();
+        targetedUsers.add("UBGM4FT6C");targetedUsers.add("UAETDFTFW");targetedUsers.add("UBGM71U64");
+        trackedChannels = new ArrayList<>();
+        trackedChannels.add(session.findChannelByName("random"));
+        session.addMessagePostedListener(new MessagePosterListener(this));
+    }
+
+    private void readCommand(InputStream inputStream)
+    {
+        new Thread(() -> {
+            Scanner scanner = new Scanner(inputStream);
+            String command;
+
+            while (running && scanner.hasNextLine())
+            {
+                command = scanner.nextLine();
+                commandManager.handleCommand(command);
             }
-        });
+        }).start();
     }
 }
