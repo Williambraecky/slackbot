@@ -42,6 +42,7 @@ public class Main {
         try {
             session.connect();
         } catch (Exception exception) {
+            exception.printStackTrace();
             Logger.error("Could not start slacksession");
             return;
         }
@@ -52,6 +53,7 @@ public class Main {
         targetedUsers.add("UBGM4FT6C");targetedUsers.add("UAETDFTFW");targetedUsers.add("UBGM71U64");
         trackedChannels = new ArrayList<>();
         trackedChannels.add(session.findChannelByName("random"));
+        trackedChannels.add(session.findChannelByName("annonces"));
         session.addMessagePostedListener(new MessagePosterListener(this));
     }
 

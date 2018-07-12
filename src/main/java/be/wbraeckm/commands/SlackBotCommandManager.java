@@ -3,6 +3,7 @@ package be.wbraeckm.commands;
 import be.wbraeckm.Main;
 import be.wbraeckm.commands.defaults.StopCommand;
 import be.wbraeckm.commands.defaults.TrackUserCommand;
+import be.wbraeckm.commands.defaults.UntrackUserCommand;
 import be.wbraeckm.logger.Logger;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class SlackBotCommandManager {
         commandList = new ArrayList<>();
         registerCommand(new TrackUserCommand(main));
         registerCommand(new StopCommand(main));
+        registerCommand(new UntrackUserCommand(main));
     }
 
     public void handleCommand(String command)
