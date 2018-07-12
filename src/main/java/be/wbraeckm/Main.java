@@ -51,6 +51,7 @@ public class Main {
         readCommand(System.in);
         targetedUsers = new ArrayList<>();
         targetedUsers.add("UBGM4FT6C");targetedUsers.add("UAETDFTFW");targetedUsers.add("UBGM71U64");
+        targetedUsers.add("UBKUCF4D8");
         trackedChannels = new ArrayList<>();
         trackedChannels.add(session.findChannelByName("random"));
         trackedChannels.add(session.findChannelByName("annonces"));
